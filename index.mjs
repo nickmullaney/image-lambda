@@ -1,54 +1,48 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { response } from 'express';
 import { Response } from 'node-fetch';
 
+const s3Client = new S3Client({ region: "us-west-2" });
+
 export const handler = async (event) => {
-  const s3Client = new S3Client({ region: "us-west-2" });
-  const params = {
-    Key: event.Records[0].s3.object.key,
-    fileSize: event.Records[0].s3.object.size,
+  let name = event.Records[0].s3.object.key;
+  let size = event.Records[0].s3.object.size;
+  let type = '.jpg';
+  let newImageDetails = { name, size, type }
+  console.log('new image details', newImageDetails);
+
+  let params = {
+    Key: 'images.json',
     Bucket: 'nmullaney-images',
   };
 
-  console.log('new event info', params);
-
-  let data;
+  let imageDetails;
   try {
-    let s3Results = await s3Client.send(new GetObjectCommand(params));
-    const response = new Response(s3Results.Body);
-    data = await response.json();
+    let results = await s3Client.send(new GetObjectCommand(params));
+    let response = new Response(results.Body); //satisfies the result "promise"
+    let retrievedImageDetails = await response.json(); // converts response into usable array
+    imageDetails = retrievedImageDetails; // At this point we have the array if JSON exists
   } catch (e) {
-    console.log("Handler Event", JSON.stringify(event, undefined, "  "));
+    imageDetails = 'goal: populate this';
+    console.log('get object error ', e);
+    imageDetails = [];
   }
 
-  console.log('this is my data', data);
+  imageDetails.push(newImageDetails);
+  console.log('Our image details array ', imageDetails)
 
-  // Check if the image already exists in the array based on its name
-  const existingImageIndex = data.findIndex(image => image.Key === params.Key);
-
-  if (existingImageIndex !== -1) {
-    // If the image is a duplicate name, update the object in the array
-    data[existingImageIndex] = params;
-  } else {
-    // Append the data for this image to the array
-    data.push(params);
-  }
-
-  // Prepare the updated images.json data (JSON) to be written to the file
-  const updatedJson = JSON.stringify(data);
-
-  // Set the parameters for the PutObjectCommand
-  const putParams = {
+  let stringifiedDetails = JSON.stringify(imageDetails);
+  let putParams = {
     ...params,
-    Key: 'images.json',
-    Body: updatedJson,
-    ContentType: "application/json"
-  };
-
-  // Upload the updated images.json file back to the S3 bucket
-  try {
-    await s3Client.send(new PutObjectCommand(putParams));
-    console.log('images.json file updated successfully');
-  } catch (e) {
-    console.error('Error updating images.json file:', e);
+    Body: stringifiedDetails,
+    ContentType: 'application/json' //For JSON it's always this
   }
-};
+
+  try{
+    await s3Client.send(new PutObjectCommand(putParams));
+  } catch(e){
+    console.warn('failed to put ', e);
+  }
+
+  return response;
+}

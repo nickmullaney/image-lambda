@@ -1,6 +1,17 @@
-{
-  "images": {
-    "image1": "Dragon",
-    "image2": "Thief"
+[
+  {
+    "name": "testOne",
+    "size": "1024",
+    "type": "jpg"
+  },
+  {
+    "name": "testTwo",
+    "size": "1024",
+    "type": "jpg"
+  },
+  {
+    "name": "testThree",
+    "size": "1024",
+    "type": "jpg"
   }
-}
+]
