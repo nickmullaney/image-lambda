@@ -38,9 +38,9 @@ export const handler = async (event) => {
     ContentType: 'application/json' //For JSON it's always this
   }
 
-  try{
+  try {
     await s3Client.send(new PutObjectCommand(putParams));
-  } catch(e){
+  } catch (e) {
     console.warn('failed to put ', e);
   }
 
