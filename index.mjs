@@ -12,8 +12,8 @@ export const handler = async (event) => {
   console.log('new image details', newImageDetails);
 
   let params = {
-    Key: 'images.json',
     Bucket: 'nmullaney-images',
+    Key: 'images.json',
   };
 
   let imageDetails;
