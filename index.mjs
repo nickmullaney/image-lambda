@@ -21,9 +21,9 @@ export const handler = async (event) => {
     let results = await s3Client.send(new GetObjectCommand(params));
     let response = new Response(results.Body); //satisfies the result "promise"
     let retrievedImageDetails = await response.json(); // converts response into usable array
-    imageDetails = retrievedImageDetails; // At this point we have the array if JSON exists
+    // imageDetails = retrievedImageDetails; // At this point we have the array if JSON exists
+    console.log('here is my retrieved image data', retrievedImageDetails)
   } catch (e) {
-    imageDetails = 'goal: populate this';
     console.log('get object error ', e);
     imageDetails = [];
   }
@@ -43,6 +43,9 @@ export const handler = async (event) => {
   } catch (e) {
     console.warn('failed to put ', e);
   }
-
+  const response = {
+    statusCode: 200,
+    body: stringifiedDetails,
+  };
   return response;
-}
+};
